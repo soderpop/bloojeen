@@ -1,0 +1,192 @@
+import numpy as np
+from PIL import Image
+
+def compress_image_lossless(image, grayscale_tones):
+  """Compresses an image with grayscale tones losslessly.
+
+  Args:
+    image: The image to compress.
+    grayscale_tones: The number of grayscale tones to use.
+
+  Returns:
+    The compressed image.
+  """
+
+  # Get the dimensions of the image.
+  width, height = image.size
+
+  # Create a blank image.
+  compressed_image = np.zeros((width, height), dtype=np.uint8)
+
+  # Iterate over each pixel in the image.
+  for i in range(0, width):
+    for j in range(0, height):
+      # Get the grayscale value of the pixel.
+      grayscale_value = image.getpixel((i, j))
+
+      # Store the grayscale value in the compressed image.
+      compressed_image[i][j] = grayscale_value % grayscale_tones
+
+  return compressed_image
+
+def reconstruct_image_lossless(compressed_image, grayscale_tones):
+  """Reconstructs an image from its compressed representation losslessly.
+
+  Args:
+    compressed_image: The compressed image.
+    grayscale_tones: The number of grayscale tones to use.
+
+  Returns:
+    The reconstructed image.
+  """
+
+  # Create a blank image.
+  image = Image.new("L", (compressed_image.shape[0], compressed_image.shape[1]))
+
+  # Iterate over each pixel in the compressed image.
+  for i in range(0, compressed_image.shape[0]):
+    for j in range(0, compressed_image.shape[1]):
+      # Get the grayscale value from the compressed image.
+      grayscale_value = compressed_image[i][j]
+
+      # Set the pixel in the image to the grayscale value.
+      image.putpixel((i, j), grayscale_value)
+
+  return image
+
+def compress_binary_data_with_entropy_coding(binary_data):
+  """Compresses binary data with entropy coding.
+
+  Args:
+    binary_data: The binary data to compress.
+
+  Returns:
+    The compressed binary data.
+  """
+
+  # Create a frequency table for the binary data.
+  frequency_table = {}
+  for byte in binary_data:
+    if byte not in frequency_table:
+      frequency_table[byte] = 0
+    frequency_table[byte] += 1
+
+  # Create a dictionary of codes for each symbol.
+  codes = {}
+  code_length = 0
+  for byte, frequency in frequency_table.items():
+    if frequency == 1:
+      codes[byte] = str(byte)
+    else:
+      code = ""
+      while code_length <= frequency:
+        code += str(code_length)
+        code_length += 1
+      codes[byte] = code
+
+  # Create the compressed data.
+  compressed_data = ""
+  for byte in binary_data:
+    compressed_data += codes[byte]
+
+  return compressed_data
+
+def reconstruct_binary_data_with_entropy_coding(compressed_data, frequency_table):
+  """Reconstructs binary data from its compressed representation with entropy coding.
+
+  Args:
+    compressed_data: The compressed binary data.
+    frequency_table: The frequency table for the binary data.
+
+  Returns:
+    The reconstructed binary data.
+  """
+
+  # Create a blank binary data.
+  binary_data = []
+
+  # Iterate over the compressed data.
+  for byte in compressed_data:
+    # Find the byte in the frequency table that corresponds to the compressed byte.
+    for byte in frequency_table.keys():
+      if byte.startswith(byte):
+        binary_data.append(byte)
+        break
+
+  return binary_data
+
+def compress_image_and_binary_data(image, binary_data):
+  """Compresses an image and binary data losslessly.
+
+  Args:
+    image: The image to compress.
+    binary_data: The binary data to compress.
+
+  Returns:
+    The compressed image and binary data.
+  """
+
+  # Compress the image with lossless compression.
+  compressed_image = compress_image_lossless(image, 256)
+
+  # Compress the binary data with entropy coding.
+  frequency_table = {}
+  for byte in binary_data:
+    if byte not in frequency_table:
+      frequency_table[byte] = 0
+    frequency_table[byte] += 1
+  compressed_binary_data = compress_binary_data_with_entropy_coding(
+      binary_data, frequency_table)
+
+  # Compress the image with fractal compression.
+  compressed_image_fractal = np.zeros_like(compressed_image)
+  for i in range(0, compressed_image.shape[0]):
+    for j in range(0, compressed_image.shape[1]):
+      if i % 2 == 0 and j % 2 == 0:
+        compressed_image_fractal[i][j] = compressed_image[i][j]
+      else:
+        compressed_image_fractal[i][j] = compressed_image_fractal[i // 2][j // 2]
+
+  # Combine the compressed image, binary data, and fractal image.
+  compressed_data = bytes(
+      np.concatenate((compressed_image, compressed_binary_data,
+                       compressed_image_fractal)))
+
+  return compressed_data
+
+def reconstruct_image_and_binary_data(bloojen):
+  """Reconstructs an image and binary data from their compressed representation.
+
+  Args:
+    bloojeen: The compressed image and binary data.
+
+  Returns:
+    The image and binary data.
+  """
+
+  # Split the compressed data into the compressed image, binary data, and fractal image.
+  compressed_image, compressed_binary_data, compressed_image_fractal = bloojeen[:len(
+      bloojeen) // 3], bloojeen[len(bloojen) // 3:len(bloojen) * 2 // 3], bloojeen[len(
+          bloojeen) * 2 // 3:]
+
+  # Reconstruct the image.
+  image = reconstruct_image_lossless(compressed_image, 256)
+
+  # Reconstruct the binary data.
+  frequency_table = {}
+  for byte, code in enumerate(compressed_binary_data):
+    if code not in frequency_table:
+      frequency_table[code] = byte
+  binary_data = reconstruct_binary_data_with_entropy_coding(
+      compressed_binary_data, frequency_table)
+
+  # Reconstruct the fractal image.
+  fractal_image = np.zeros_like(compressed_image_fractal)
+  for i in range(0, compressed_image_fractal.shape[0]):
+    for j in range(0, compressed_image_fractal.shape[1]):
+      if i % 2 == 0 and j % 2 == 0:
+        fractal_image[i][j] = compressed_image_fractal[i][j]
+      else:
+        fractal_image[i][j] = fractal_image[i // 2][j // 2]
+
+  return image, binary_data, fractal_image
